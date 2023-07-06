@@ -2,6 +2,7 @@ module Main exposing (Model, Msg, main)
 
 import Browser
 import Browser.Navigation as Nav
+import Html exposing (Html, div, h1, li, p, text, ul)
 import Http
 import Json.Decode exposing (Decoder, field, keyValuePairs, list, string)
 import Url
@@ -103,11 +104,51 @@ subscriptions _ =
 
 
 view : Model -> Browser.Document Msg
-view _ =
+view model =
     { title = "Puppy Power!"
-    , body = body
+    , body = body model
     }
 
+
+body : Model -> List (Html Msg)
+body model =
+    [ div []
+        [ h1 [] [ text "Dog Breeds" ]
+        , p [] [ text "Click a breed (or sub-breed) to view some puppy pics!" ]
+        ]
+    , viewBreedsList model
+    ]
+
+
+viewBreedsList : Model -> Html Msg
+viewBreedsList model =
+    case model.dogBreeds of
+        Loading ->
+            div [] [ text "Sorry for the brief paws--we're loading! ;)" ]
+
+        Failure _ ->
+            div [] [ text "Dog-gonit! Something went wrong with that fetch. Let's try again." ]
+
+        Success breeds ->
+            div [] <| List.map createUnorderedList breeds
+
+
+createUnorderedList : ( String, List String ) -> Html Msg
+createUnorderedList ( breed, subBreeds ) =
+    case subBreeds of
+        [] ->
+            li [] [ text breed ]
+
+        _ ->
+            li []
+                [ text breed
+                , ul [] <| List.map makeSubListItem subBreeds
+                ]
+
+
+makeSubListItem : String -> Html Msg
+makeSubListItem subBreed =
+    li [] [ text subBreed ]
 
 
 getAllBreeds : Cmd Msg
