@@ -47,7 +47,7 @@ routeToString route =
             "/breed/" ++ breed
 
         SubBreed breed subBreed ->
-            "/breed" ++ breed ++ "/" ++ subBreed
+            "/breed/" ++ breed ++ "/" ++ subBreed
 
         NotFound ->
             "/404"
