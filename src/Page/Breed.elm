@@ -1,4 +1,4 @@
-module Page.Breed exposing (..)
+module Page.Breed exposing (Model, Msg, init, update, view)
 
 import Helpers.Message as Message
 import Html exposing (Html, div, h1, img, p, text)
