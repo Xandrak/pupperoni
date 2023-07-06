@@ -1,5 +1,6 @@
-module Page.Breeds exposing (Model, Msg, init, update, view)
+module Page.Breeds exposing (Breed, Model, Msg, SubBreed, breedToString, init, stringToBreed, stringToSubBreed, subBreedToString, update, view)
 
+import Helpers.Message as Message
 import Html exposing (Html, a, div, h1, li, p, text, ul)
 import Http
 import Json.Decode as Decode exposing (Decoder, field, keyValuePairs, list)
@@ -83,10 +84,10 @@ view model =
         , p [] [ text "Click a breed (or sub-breed) to view some puppy pics!" ]
         , case model.dogBreeds of
             Loading ->
-                div [] [ text "Sorry for the brief paws--we're loading! ;)" ]
+                div [] [ text Message.loading ]
 
             Failure _ ->
-                div [] [ text "Dog-gonit! Something went wrong with that fetch. Let's try again." ]
+                div [] [ text Message.failureToFetch ]
 
             Success breeds ->
                 div [] <| List.map unorderedBreedLinkList breeds
