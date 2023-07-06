@@ -10,6 +10,7 @@ type Route
     = Home
     | AllBreeds
     | Breed String
+    | SubBreed String String
     | NotFound
 
 
@@ -19,6 +20,7 @@ routeParser =
         [ map Home Parser.top
         , map AllBreeds (s "breeds")
         , map Breed (s "breed" </> Parser.string)
+        , map SubBreed (s "breed" </> Parser.string </> Parser.string)
         ]
 
 
@@ -43,6 +45,9 @@ routeToString route =
 
         Breed breed ->
             "/breed/" ++ breed
+
+        SubBreed breed subBreed ->
+            "/breed" ++ breed ++ "/" ++ subBreed
 
         NotFound ->
             "/404"
