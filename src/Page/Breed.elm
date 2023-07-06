@@ -62,7 +62,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ h1 [] [ text "Dog Breeds" ]
-        , p [] [ text "Click a breed (or sub-breed) to view some puppy pics!" ]
+        , p [] [ text "Here you go, enjoy!" ]
         , case model.breedPics of
             Loading ->
                 div [] [ text Message.loading ]
