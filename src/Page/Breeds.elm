@@ -143,7 +143,7 @@ unorderedBreedLinkList ( breedName, subBreeds ) =
         _ ->
             li []
                 [ a [ Route.href (Route.Breed breedNameStr) ] [ text breedNameStr ]
-                , ul [] <| List.map makeSubBreedListLink subBreeds
+                , ul [] <| List.map (makeSubBreedListLink breedName) subBreeds
                 ]
 
 
@@ -151,13 +151,15 @@ unorderedBreedLinkList ( breedName, subBreeds ) =
 -- make types for breed and subbreed to prevent type blindness here
 
 
-makeSubBreedListLink : SubBreed -> Html Msg
-makeSubBreedListLink subBreed =
+makeSubBreedListLink : Breed -> SubBreed -> Html Msg
+makeSubBreedListLink breedName subBreed =
     let
+        breedNameStr = 
+            breedToString breedName
         subBreedNameStr =
             subBreedToString subBreed
     in
-    li [] [ a [ Route.href (Route.Breed subBreedNameStr) ] [ text subBreedNameStr ] ]
+    li [] [ a [ Route.href (Route.SubBreed breedNameStr subBreedNameStr) ] [ text subBreedNameStr ] ]
 
 
 
