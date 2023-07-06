@@ -88,7 +88,7 @@ getBreedImages : Breed -> Maybe SubBreed -> Cmd Msg
 getBreedImages breed maybeSubBreed =
     let
         base =
-            "https://images.dog.ceo/breeds/" ++ breedToString breed
+            "https://dog.ceo/api/breed/" ++ breedToString breed
 
         imagePath =
             "/images"
@@ -99,7 +99,7 @@ getBreedImages breed maybeSubBreed =
                     base ++ imagePath
 
                 Just subBreed ->
-                    base ++ subBreedToString subBreed ++ imagePath
+                    base ++ "/" ++ subBreedToString subBreed ++ imagePath
     in
     Http.get
         { url = url
