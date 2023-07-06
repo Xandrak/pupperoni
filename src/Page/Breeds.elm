@@ -1,4 +1,16 @@
-module Page.Breeds exposing (Breed, Model, Msg, SubBreed, breedToString, init, stringToBreed, stringToSubBreed, subBreedToString, update, view)
+module Page.Breeds exposing
+    ( Breed
+    , Model
+    , Msg
+    , SubBreed
+    , breedToString
+    , init
+    , stringToBreed
+    , stringToSubBreed
+    , subBreedToString
+    , update
+    , view
+    )
 
 import Helpers.Message as Message
 import Html exposing (Html, a, div, h1, li, p, text, ul)
