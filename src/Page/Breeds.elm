@@ -1,14 +1,40 @@
 module Page.Breeds exposing (Model, Msg, init, update, view)
 
-import Api.Breeds exposing (BreedRequest(..), getAllBreeds)
 import Html exposing (Html, a, div, h1, li, p, text, ul)
-import Html.Attributes exposing (href)
 import Http
+import Json.Decode as Decode exposing (Decoder, field, keyValuePairs, list)
+import Route as Route
+
+
+
+-- MODEL
 
 
 type alias Model =
     { dogBreeds : BreedRequest
     }
+
+
+
+-- TYPES
+
+
+type BreedRequest
+    = Failure Http.Error
+    | Loading
+    | Success (List ( Breed, List SubBreed ))
+
+
+type Breed
+    = Breed String
+
+
+type SubBreed
+    = SubBreed String
+
+
+
+-- INIT
 
 
 init : ( Model, Cmd Msg )
@@ -22,6 +48,10 @@ type Msg
     = GotBreeds (Result Http.Error (List ( String, List String )))
 
 
+
+-- UPDATE
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -31,12 +61,19 @@ update msg model =
                     let
                         sortedBreeds =
                             List.sort breeds
+
+                        convertedBreeds =
+                            List.map convertFromStringToBreed sortedBreeds
                     in
                     -- persist in session storage here as well
-                    ( { model | dogBreeds = Success sortedBreeds }, Cmd.none )
+                    ( { model | dogBreeds = Success convertedBreeds }, Cmd.none )
 
                 Err err ->
                     ( { model | dogBreeds = Failure err }, Cmd.none )
+
+
+
+-- VIEW
 
 
 view : Model -> Html Msg
@@ -52,24 +89,60 @@ view model =
                 div [] [ text "Dog-gonit! Something went wrong with that fetch. Let's try again." ]
 
             Success breeds ->
-                div [] <| List.map createUnorderedLinkList breeds
+                div [] <| List.map unorderedBreedLinkList breeds
         ]
 
 
-createUnorderedLinkList : ( String, List String ) -> Html Msg
-createUnorderedLinkList ( breed, subBreeds ) =
+
+-- HELPERS
+
+
+stringToBreed : String -> Breed
+stringToBreed str =
+    Breed str
+
+
+breedToString : Breed -> String
+breedToString (Breed str) =
+    str
+
+
+stringToSubBreed : String -> SubBreed
+stringToSubBreed str =
+    SubBreed str
+
+
+subBreedToString : SubBreed -> String
+subBreedToString (SubBreed str) =
+    str
+
+
+convertFromStringToBreed : ( String, List String ) -> ( Breed, List SubBreed )
+convertFromStringToBreed ( breed, subBreeds ) =
     let
-        path =
-            "breed/" ++ breed
+        convertedBreed =
+            stringToBreed breed
+
+        convertedSubBreeds =
+            List.map stringToSubBreed subBreeds
+    in
+    ( convertedBreed, convertedSubBreeds )
+
+
+unorderedBreedLinkList : ( Breed, List SubBreed ) -> Html Msg
+unorderedBreedLinkList ( breedName, subBreeds ) =
+    let
+        breedNameStr =
+            breedToString breedName
     in
     case subBreeds of
         [] ->
-            li [] [ a [ href path ] [ text breed ] ]
+            li [] [ a [ Route.href (Route.Breed breedNameStr) ] [ text breedNameStr ] ]
 
         _ ->
             li []
-                [ text breed
-                , ul [] <| List.map (makeSubListLink path) subBreeds
+                [ a [ Route.href (Route.Breed breedNameStr) ] [ text breedNameStr ]
+                , ul [] <| List.map makeSubBreedListLink subBreeds
                 ]
 
 
@@ -77,10 +150,27 @@ createUnorderedLinkList ( breed, subBreeds ) =
 -- make types for breed and subbreed to prevent type blindness here
 
 
-makeSubListLink : String -> String -> Html Msg
-makeSubListLink path subBreed =
+makeSubBreedListLink : SubBreed -> Html Msg
+makeSubBreedListLink subBreed =
     let
-        subBreedPath =
-            path ++ "/" ++ subBreed
+        subBreedNameStr =
+            subBreedToString subBreed
     in
-    li [] [ a [ href subBreedPath ] [ text subBreed ] ]
+    li [] [ a [ Route.href (Route.Breed subBreedNameStr) ] [ text subBreedNameStr ] ]
+
+
+
+-- HTTP
+
+
+getAllBreeds : (Result Http.Error (List ( String, List String )) -> msg) -> Cmd msg
+getAllBreeds expectedMsg =
+    Http.get
+        { url = "https://dog.ceo/api/breeds/list/all"
+        , expect = Http.expectJson expectedMsg messageDecoder
+        }
+
+
+messageDecoder : Decoder (List ( String, List String ))
+messageDecoder =
+    field "message" (keyValuePairs (list Decode.string))
