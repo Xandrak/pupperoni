@@ -8,9 +8,22 @@ import Json.Decode as Decode exposing (Decoder, field, list)
 import Page.Breeds exposing (Breed, SubBreed, breedToString, subBreedToString)
 
 
+
+-- MODEL
+
+
 type alias Model =
     { breedPics : BreedPicturesRequest
     }
+
+
+init : Breed -> Maybe SubBreed -> ( Model, Cmd Msg )
+init breed maybeSubBreed =
+    ( Model Loading, getBreedImages breed maybeSubBreed )
+
+
+
+-- TYPES
 
 
 type BreedPicturesRequest
@@ -23,23 +36,12 @@ type ImageLink
     = ImageLink String
 
 
-imageLinkToString : ImageLink -> String
-imageLinkToString (ImageLink str) =
-    str
-
-
-stringToImageLink : String -> ImageLink
-stringToImageLink str =
-    ImageLink str
-
-
-init : Breed -> Maybe SubBreed -> ( Model, Cmd Msg )
-init breed maybeSubBreed =
-    ( Model Loading, getBreedImages breed maybeSubBreed )
-
-
 type Msg
     = GotPictures (Result Http.Error (List String))
+
+
+
+-- UPDATE
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -56,6 +58,10 @@ update msg model =
 
                 Err err ->
                     ( { model | breedPics = Failure err }, Cmd.none )
+
+
+
+-- VIEW
 
 
 view : Model -> Html Msg
@@ -75,6 +81,20 @@ view model =
         ]
 
 
+
+-- HELPERS
+
+
+imageLinkToString : ImageLink -> String
+imageLinkToString (ImageLink str) =
+    str
+
+
+stringToImageLink : String -> ImageLink
+stringToImageLink str =
+    ImageLink str
+
+
 renderImages : ImageLink -> Html Msg
 renderImages pic =
     let
@@ -82,6 +102,10 @@ renderImages pic =
             imageLinkToString pic
     in
     img [ src imageStr ] []
+
+
+
+-- HTTP
 
 
 getBreedImages : Breed -> Maybe SubBreed -> Cmd Msg

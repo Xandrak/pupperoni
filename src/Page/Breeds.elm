@@ -16,6 +16,13 @@ type alias Model =
     }
 
 
+init : ( Model, Cmd Msg )
+init =
+    ( Model Loading
+    , getAllBreeds GotBreeds
+    )
+
+
 
 -- TYPES
 
@@ -32,17 +39,6 @@ type Breed
 
 type SubBreed
     = SubBreed String
-
-
-
--- INIT
-
-
-init : ( Model, Cmd Msg )
-init =
-    ( Model Loading
-    , getAllBreeds GotBreeds
-    )
 
 
 type Msg
