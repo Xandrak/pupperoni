@@ -4,7 +4,9 @@ import Browser
 import Browser.Navigation as Nav
 import Html exposing (Html, a, div, h1, p, section, text)
 import Html.Attributes exposing (href)
+import Page.Breed as Breed
 import Page.Breeds as Breeds
+import Page.NotFound as NotFound
 import Route exposing (Route(..))
 import Url
 
@@ -40,11 +42,11 @@ type alias Model =
 type Page
     = Home
     | AllBreeds Breeds.Model
+    | Breed Breed.Model
+    | NotFound
 
 
 
--- | Breed Breed.Model
--- | Breed Breed.Model
 -- add flags/check for session storage here
 
 
@@ -73,11 +75,22 @@ loadCurrentPage ( model, cmd ) =
                     ( Home, Cmd.none )
 
                 -- FIXME: make this Breed page
-                Route.Breed _ ->
-                    ( Home, Cmd.none )
+                Route.Breed breed ->
+                    let
+                        ( pageModel, pageCmd ) =
+                            Breed.init (Breeds.stringToBreed breed) Nothing
+                    in
+                    ( Breed pageModel, Cmd.map BreedMsg pageCmd )
+
+                Route.SubBreed breed subBreed ->
+                    let
+                        ( pageModel, pageCmd ) =
+                            Breed.init (Breeds.stringToBreed breed) (Just <| Breeds.stringToSubBreed subBreed)
+                    in
+                    ( Breed pageModel, Cmd.map BreedMsg pageCmd )
 
                 Route.NotFound ->
-                    ( Home, Cmd.none )
+                    ( NotFound, Cmd.none )
     in
     ( { model | page = page }, Cmd.batch [ cmd, newCmd ] )
 
@@ -90,6 +103,7 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | AllBreedsMsg Breeds.Msg
+    | BreedMsg Breed.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -121,6 +135,18 @@ update msg model =
             )
 
         ( AllBreedsMsg _, _ ) ->
+            ( model, Cmd.none )
+
+        ( BreedMsg breedMsg, Breed breedModel ) ->
+            let
+                ( newPageModel, newCmd ) =
+                    Breed.update breedMsg breedModel
+            in
+            ( { model | page = Breed newPageModel }
+            , Cmd.map BreedMsg newCmd
+            )
+
+        ( BreedMsg _, _ ) ->
             ( model, Cmd.none )
 
 
@@ -155,6 +181,13 @@ currentView model =
 
                 Home ->
                     homeView
+
+                Breed breedModel ->
+                    Breed.view breedModel
+                        |> Html.map BreedMsg
+
+                NotFound ->
+                    NotFound.view
     in
     section []
         [ nav model
