@@ -2,9 +2,12 @@ module Main exposing (Model, Msg, main)
 
 import Browser
 import Browser.Navigation as Nav
-import Html exposing (Html, div, h1, p, text, button)
+import Html exposing (Html, a, div, h1, p, section, text)
 import Html.Attributes exposing (href)
+import Page.Breeds as Breeds
+import Route exposing (Route(..))
 import Url
+
 
 
 -- MAIN
@@ -27,18 +30,56 @@ main =
 
 
 type alias Model =
-    { key : Nav.Key
-    , url : Url.Url
+    { -- flags : Flags
+      key : Nav.Key
+    , route : Route
+    , page : Page
     }
 
 
+type Page
+    = Home
+    | AllBreeds Breeds.Model
 
+
+
+-- | Breed Breed.Model
+-- | Breed Breed.Model
 -- add flags/check for session storage here
 
 
 init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( Model key url, Cmd.none )
+    let
+        route =
+            Route.fromUrl url
+    in
+    ( Model key route Home, Cmd.none )
+
+
+loadCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+loadCurrentPage ( model, cmd ) =
+    let
+        ( page, newCmd ) =
+            case model.route of
+                Route.AllBreeds ->
+                    let
+                        ( pageModel, pageCmd ) =
+                            Breeds.init
+                    in
+                    ( AllBreeds pageModel, Cmd.map AllBreedsMsg pageCmd )
+
+                Route.Home ->
+                    ( Home, Cmd.none )
+
+                -- FIXME: make this Breed page
+                Route.Breed _ ->
+                    ( Home, Cmd.none )
+
+                Route.NotFound ->
+                    ( Home, Cmd.none )
+    in
+    ( { model | page = page }, Cmd.batch [ cmd, newCmd ] )
 
 
 
@@ -48,12 +89,13 @@ init _ url key =
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
+    | AllBreedsMsg Breeds.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        LinkClicked urlRequest ->
+    case ( msg, model.page ) of
+        ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
                     ( model, Nav.pushUrl model.key (Url.toString url) )
@@ -61,9 +103,27 @@ update msg model =
                 Browser.External href ->
                     ( model, Nav.load href )
 
-        UrlChanged url ->
-            ( { model | url = url }, Cmd.none )
-            
+        ( UrlChanged url, _ ) ->
+            let
+                newRoute =
+                    Route.fromUrl url
+            in
+            ( { model | route = newRoute }, Cmd.none )
+                |> loadCurrentPage
+
+        ( AllBreedsMsg breedsMsg, AllBreeds breedsModel ) ->
+            let
+                ( newPageModel, newCmd ) =
+                    Breeds.update breedsMsg breedsModel
+            in
+            ( { model | page = AllBreeds newPageModel }
+            , Cmd.map AllBreedsMsg newCmd
+            )
+
+        ( AllBreedsMsg _, _ ) ->
+            ( model, Cmd.none )
+
+
 
 -- SUBSCRIPTIONS
 
@@ -80,19 +140,37 @@ subscriptions _ =
 view : Model -> Browser.Document Msg
 view model =
     { title = "Puppy Power!"
-    , body = body model
+    , body = [ currentView model ]
     }
 
 
-body : Model -> List (Html Msg)
-body _ =
-    [ div []
+currentView : Model -> Html Msg
+currentView model =
+    let
+        page =
+            case model.page of
+                AllBreeds breedsModel ->
+                    Breeds.view breedsModel
+                        |> Html.map AllBreedsMsg
+
+                Home ->
+                    homeView
+    in
+    section []
+        [ nav model
+        , page
+        ]
+
+
+nav : Model -> Html Msg
+nav _ =
+    div [] []
+
+
+homeView : Html Msg
+homeView =
+    div []
         [ h1 [] [ text "Elm Example App - Dog Breeds" ]
         , p [] [ text "Click below to view a list of dog breeds with links to pictures!" ]
-        , button [] [ text "Click for puppy pics!"]
+        , a [ Route.href Route.AllBreeds ] [ text "Click for puppy pics!" ]
         ]
-    ]
-
-
-
-

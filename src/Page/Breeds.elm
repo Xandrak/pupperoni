@@ -1,4 +1,4 @@
-module Page.Breeds exposing (..)
+module Page.Breeds exposing (Model, Msg, init, update, view)
 
 import Api.Breeds exposing (BreedRequest(..), getAllBreeds)
 import Html exposing (Html, a, div, h1, li, p, text, ul)
@@ -11,8 +11,8 @@ type alias Model =
     }
 
 
-init : flags -> ( Model, Cmd Msg )
-init _ =
+init : ( Model, Cmd Msg )
+init =
     ( Model Loading
     , getAllBreeds GotBreeds
     )
@@ -39,22 +39,21 @@ update msg model =
                     ( { model | dogBreeds = Failure err }, Cmd.none )
 
 
-view : Model -> List (Html Msg)
+view : Model -> Html Msg
 view model =
-    [ div []
+    div []
         [ h1 [] [ text "Dog Breeds" ]
-        , p [] [ text "Select a breed (or sub-breed) to view some puppy pics!" ]
-        ,   case model.dogBreeds of
-                Loading ->
-                    div [] [ text "Sorry for the brief paws--we're loading! ;)" ]
+        , p [] [ text "Click a breed (or sub-breed) to view some puppy pics!" ]
+        , case model.dogBreeds of
+            Loading ->
+                div [] [ text "Sorry for the brief paws--we're loading! ;)" ]
 
-                Failure _ ->
-                    div [] [ text "Dog-gonit! Something went wrong with that fetch. Let's try again." ]
+            Failure _ ->
+                div [] [ text "Dog-gonit! Something went wrong with that fetch. Let's try again." ]
 
-                Success breeds ->
-                    div [] <| List.map createUnorderedLinkList breeds
+            Success breeds ->
+                div [] <| List.map createUnorderedLinkList breeds
         ]
-    ]
 
 
 createUnorderedLinkList : ( String, List String ) -> Html Msg
