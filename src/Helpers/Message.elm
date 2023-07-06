@@ -1,8 +1,10 @@
 module Helpers.Message exposing (..)
 
+
 loading : String
 loading =
     "Sorry for the brief paws--we're loading! ;)"
+
 
 failureToFetch : String
 failureToFetch =

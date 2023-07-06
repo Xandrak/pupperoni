@@ -154,8 +154,9 @@ unorderedBreedLinkList ( breedName, subBreeds ) =
 makeSubBreedListLink : Breed -> SubBreed -> Html Msg
 makeSubBreedListLink breedName subBreed =
     let
-        breedNameStr = 
+        breedNameStr =
             breedToString breedName
+
         subBreedNameStr =
             subBreedToString subBreed
     in
