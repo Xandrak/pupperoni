@@ -3,6 +3,25 @@
 
 Small, example Elm application utilizing a dog breed API.
 
+## How to Run
+If you have [elm-live](https://www.elm-live.com/) use the following command from the repo directory:
+```
+elm-live src/Main.elm -- --optimize --output=app.js 
+```
+If you'd like debug capabilities use the following:
+```
+elm-live src/Main.elm -- --output=app.js --debug
+```
+
+If you do not have `elm-live` you can use `elm reactor`:
+```
+elm reactor
+```
+
+Regardless of either approach, you will need to navigate to `http://localhost:8000`.
+
+If using `elm-live`, you should see the home page.
+If using `elm reactor` you will need to click on `src/Main.elm`.
 
 ## Future Enhancements
 1. Accessibility - style the app utilizing WCAG 
