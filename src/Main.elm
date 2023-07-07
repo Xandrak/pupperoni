@@ -2,6 +2,8 @@ module Main exposing (Model, Msg, Page, main)
 
 import Browser
 import Browser.Navigation as Nav
+import Html exposing (Html, a, div, h1, p, text)
+import Html.Attributes exposing (style)
 import Json.Encode as Encode
 import Page.Breed as Breed
 import Page.Breeds as Breeds
@@ -190,20 +192,19 @@ currentView model =
                 NotFound ->
                     NotFound.view
     in
-    section []
-        [ nav model
-        , page
+    div []
+        [ page
         ]
-
-
-nav : Model -> Html Msg
-nav _ =
-    div [] []
 
 
 homeView : Html Msg
 homeView =
-    div []
+    div
+        [ style "display" "flex"
+        , style "flex-direction" "column"
+        , style "justify-content" "center"
+        , style "align-items" "center"
+        ]
         [ h1 [] [ text "Elm Example App - Dog Breeds" ]
         , p [] [ text "Click below to view a list of dog breeds with links to pictures!" ]
         , a [ Route.href Route.AllBreeds ] [ text "Click for puppy pics!" ]
