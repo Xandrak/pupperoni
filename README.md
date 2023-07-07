@@ -11,3 +11,4 @@ Small, example Elm application utilizing a dog breed API.
 4. Better error handling and communication to user.
 5. Display the breed seleced to user on images page.
 6. Maybe refactor using query params for pagination.
+7. Better UI - Scroll back to top when clicking Next/Previous buttons.
