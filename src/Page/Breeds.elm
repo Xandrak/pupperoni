@@ -196,12 +196,12 @@ messageDecoder =
 allBreedsEncoder : List ( Breed, List SubBreed ) -> Encode.Value
 allBreedsEncoder req =
     Encode.object
-        [ ( "allBreeds", Encode.list encodePairs req )
+        [ ( "allBreeds", Encode.list encodeBreeds req )
         ]
 
 
-encodePairs : ( Breed, List SubBreed ) -> Encode.Value
-encodePairs ( breed, subBreeds ) =
+encodeBreeds : ( Breed, List SubBreed ) -> Encode.Value
+encodeBreeds ( breed, subBreeds ) =
     Encode.object
         [ ( "breed", Encode.string <| breedToString breed )
         , ( "subBreed", Encode.list Encode.string <| List.map subBreedToString subBreeds )
