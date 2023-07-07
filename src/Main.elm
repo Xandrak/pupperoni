@@ -32,8 +32,7 @@ main =
 
 
 type alias Model =
-    { -- flags : Flags
-      key : Nav.Key
+    { key : Nav.Key
     , route : Route
     , page : Page
     }
@@ -74,7 +73,6 @@ loadCurrentPage ( model, cmd ) =
                 Route.Home ->
                     ( Home, Cmd.none )
 
-                -- FIXME: make this Breed page
                 Route.Breed breed ->
                     let
                         ( pageModel, pageCmd ) =
