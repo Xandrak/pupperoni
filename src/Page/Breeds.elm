@@ -15,6 +15,7 @@ module Page.Breeds exposing
 
 import Helpers.Message as Message
 import Html exposing (Html, a, div, h1, li, p, text, ul)
+import Html.Attributes exposing (style)
 import Http
 import Json.Decode as Decode exposing (Decoder, field, keyValuePairs, list)
 import Json.Encode as Encode
@@ -31,11 +32,21 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( Model Loading
-    , getAllBreeds GotBreeds
-    )
+init : Encode.Value -> ( Model, Cmd Msg )
+init flags =
+    case Decode.decodeValue messageDecoder flags of
+        Ok breeds ->
+            let
+                convertedBreeds : List ( Breed, List SubBreed )
+                convertedBreeds =
+                    List.map convertFromStringToBreed breeds
+            in
+            ( Model (Success convertedBreeds), Cmd.none )
+
+        Err _ ->
+            ( Model Loading
+            , getAllBreeds GotBreeds
+            )
 
 
 
@@ -96,7 +107,12 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div
+        [ style "display" "flex"
+        , style "flex-direction" "column"
+        , style "justify-content" "center"
+        , style "align-items" "center"
+        ]
         [ h1 [] [ text "Dog Breeds" ]
         , p [] [ text "Click a breed (or sub-breed) to view some puppy pics!" ]
         , case model.dogBreeds of
@@ -203,15 +219,14 @@ messageDecoder =
 
 
 allBreedsEncoder : List ( Breed, List SubBreed ) -> Encode.Value
-allBreedsEncoder req =
+allBreedsEncoder breeds =
     Encode.object
-        [ ( "allBreeds", Encode.list encodeBreeds req )
+        [ ( "message", Encode.list encodeBreeds breeds )
         ]
 
 
 encodeBreeds : ( Breed, List SubBreed ) -> Encode.Value
 encodeBreeds ( breed, subBreeds ) =
     Encode.object
-        [ ( "breed", Encode.string <| breedToString breed )
-        , ( "subBreed", Encode.list Encode.string <| List.map subBreedToString subBreeds )
+        [ ( breedToString breed, Encode.list Encode.string <| List.map subBreedToString subBreeds )
         ]
