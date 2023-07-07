@@ -1,11 +1,13 @@
 module Page.Breed exposing (Model, Msg, init, update, view)
 
 import Helpers.Message as Message
-import Html exposing (Html, div, h1, img, p, text)
+import Html exposing (Html, div, h1, img, p, sub, text)
 import Html.Attributes exposing (src)
 import Http
 import Json.Decode as Decode exposing (Decoder, field, list)
+import Json.Encode as Encode exposing (encode)
 import Page.Breeds exposing (Breed, SubBreed, breedToString, subBreedToString)
+import Ports
 
 
 
@@ -37,7 +39,7 @@ type ImageLink
 
 
 type Msg
-    = GotPictures (Result Http.Error (List String))
+    = GotPictures Breed (Maybe SubBreed) (Result Http.Error (List String))
 
 
 
@@ -47,14 +49,17 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotPictures result ->
+        GotPictures breed maybeSubBreed result ->
             case result of
                 Ok imageStrs ->
                     let
                         imageLinks =
                             List.map stringToImageLink imageStrs
+
+                        encodedImageLinks =
+                            encodeImageLinks imageLinks breed maybeSubBreed
                     in
-                    ( { model | breedPics = Success imageLinks }, Cmd.none )
+                    ( { model | breedPics = Success imageLinks }, Ports.setStorage encodedImageLinks )
 
                 Err err ->
                     ( { model | breedPics = Failure err }, Cmd.none )
@@ -127,10 +132,26 @@ getBreedImages breed maybeSubBreed =
     in
     Http.get
         { url = url
-        , expect = Http.expectJson GotPictures messageDecoder
+        , expect = Http.expectJson (GotPictures breed maybeSubBreed) messageDecoder
         }
 
 
 messageDecoder : Decoder (List String)
 messageDecoder =
     field "message" (list Decode.string)
+
+
+encodeImageLinks : List ImageLink -> Breed -> Maybe SubBreed -> Encode.Value
+encodeImageLinks imageLinks breed maybeSubBreed =
+    let
+        imageLinkStrs =
+            List.map imageLinkToString imageLinks
+    in
+    case maybeSubBreed of
+        Nothing ->
+            Encode.object
+                [ ( breedToString breed, Encode.list Encode.string imageLinkStrs )
+                ]
+
+        Just subBreed ->
+            Encode.object [ ( subBreedToString subBreed, Encode.list Encode.string imageLinkStrs ) ]
