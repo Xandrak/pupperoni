@@ -1,5 +1,6 @@
 module Page.Breeds exposing
     ( Breed
+    , BreedRequest
     , Model
     , Msg
     , SubBreed
@@ -18,7 +19,7 @@ import Http
 import Json.Decode as Decode exposing (Decoder, field, keyValuePairs, list)
 import Json.Encode as Encode
 import Ports
-import Route as Route
+import Route
 
 
 
@@ -42,7 +43,7 @@ init =
 
 
 type BreedRequest
-    = Failure Http.Error
+    = Failure
     | Loading
     | Success (List ( Breed, List SubBreed ))
 
@@ -70,20 +71,23 @@ update msg model =
             case result of
                 Ok breeds ->
                     let
+                        sortedBreeds : List ( String, List String )
                         sortedBreeds =
                             List.sort breeds
 
+                        convertedBreeds : List ( Breed, List SubBreed )
                         convertedBreeds =
                             List.map convertFromStringToBreed sortedBreeds
 
+                        encodedBreeds : Encode.Value
                         encodedBreeds =
                             allBreedsEncoder convertedBreeds
                     in
                     -- persist in session storage here as well
                     ( { model | dogBreeds = Success convertedBreeds }, Ports.setStorage encodedBreeds )
 
-                Err err ->
-                    ( { model | dogBreeds = Failure err }, Cmd.none )
+                Err _ ->
+                    ( { model | dogBreeds = Failure }, Cmd.none )
 
 
 
@@ -99,7 +103,7 @@ view model =
             Loading ->
                 div [] [ text Message.loading ]
 
-            Failure _ ->
+            Failure ->
                 div [] [ text Message.failureToFetch ]
 
             Success breeds ->
@@ -134,9 +138,11 @@ subBreedToString (SubBreed str) =
 convertFromStringToBreed : ( String, List String ) -> ( Breed, List SubBreed )
 convertFromStringToBreed ( breed, subBreeds ) =
     let
+        convertedBreed : Breed
         convertedBreed =
             stringToBreed breed
 
+        convertedSubBreeds : List SubBreed
         convertedSubBreeds =
             List.map stringToSubBreed subBreeds
     in
@@ -146,6 +152,7 @@ convertFromStringToBreed ( breed, subBreeds ) =
 unorderedBreedLinkList : ( Breed, List SubBreed ) -> Html Msg
 unorderedBreedLinkList ( breedName, subBreeds ) =
     let
+        breedNameStr : String
         breedNameStr =
             breedToString breedName
     in
@@ -167,9 +174,11 @@ unorderedBreedLinkList ( breedName, subBreeds ) =
 makeSubBreedListLink : Breed -> SubBreed -> Html Msg
 makeSubBreedListLink breedName subBreed =
     let
+        breedNameStr : String
         breedNameStr =
             breedToString breedName
 
+        subBreedNameStr : String
         subBreedNameStr =
             subBreedToString subBreed
     in

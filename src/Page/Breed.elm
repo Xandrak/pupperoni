@@ -1,11 +1,11 @@
-module Page.Breed exposing (Model, Msg, init, update, view)
+module Page.Breed exposing (BreedPicturesRequest, Model, Msg, init, update, view)
 
 import Helpers.Message as Message
-import Html exposing (Html, div, h1, img, p, sub, text)
+import Html exposing (Html, div, h1, img, p, text)
 import Html.Attributes exposing (src)
 import Http
 import Json.Decode as Decode exposing (Decoder, field, list)
-import Json.Encode as Encode exposing (encode)
+import Json.Encode as Encode
 import Page.Breeds exposing (Breed, SubBreed, breedToString, subBreedToString)
 import Ports
 
@@ -30,7 +30,7 @@ init breed maybeSubBreed =
 
 type BreedPicturesRequest
     = Loading
-    | Failure Http.Error
+    | Failure
     | Success (List ImageLink)
 
 
@@ -53,16 +53,18 @@ update msg model =
             case result of
                 Ok imageStrs ->
                     let
+                        imageLinks : List ImageLink
                         imageLinks =
                             List.map stringToImageLink imageStrs
 
+                        encodedImageLinks : Encode.Value
                         encodedImageLinks =
                             encodeImageLinks imageLinks breed maybeSubBreed
                     in
                     ( { model | breedPics = Success imageLinks }, Ports.setStorage encodedImageLinks )
 
-                Err err ->
-                    ( { model | breedPics = Failure err }, Cmd.none )
+                Err _ ->
+                    ( { model | breedPics = Failure }, Cmd.none )
 
 
 
@@ -78,7 +80,7 @@ view model =
             Loading ->
                 div [] [ text Message.loading ]
 
-            Failure _ ->
+            Failure ->
                 div [] [ text Message.failureToFetch ]
 
             Success pictures ->
@@ -103,6 +105,7 @@ stringToImageLink str =
 renderImages : ImageLink -> Html Msg
 renderImages pic =
     let
+        imageStr : String
         imageStr =
             imageLinkToString pic
     in
@@ -116,12 +119,15 @@ renderImages pic =
 getBreedImages : Breed -> Maybe SubBreed -> Cmd Msg
 getBreedImages breed maybeSubBreed =
     let
+        base : String
         base =
             "https://dog.ceo/api/breed/" ++ breedToString breed
 
+        imagePath : String
         imagePath =
             "/images"
 
+        url : String
         url =
             case maybeSubBreed of
                 Nothing ->
@@ -144,6 +150,7 @@ messageDecoder =
 encodeImageLinks : List ImageLink -> Breed -> Maybe SubBreed -> Encode.Value
 encodeImageLinks imageLinks breed maybeSubBreed =
     let
+        imageLinkStrs : List String
         imageLinkStrs =
             List.map imageLinkToString imageLinks
     in

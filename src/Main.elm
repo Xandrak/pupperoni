@@ -1,13 +1,12 @@
-module Main exposing (Model, Msg, main)
+module Main exposing (Model, Msg, Page, main)
 
 import Browser
 import Browser.Navigation as Nav
 import Html exposing (Html, a, div, h1, p, section, text)
-import Html.Attributes exposing (href)
 import Page.Breed as Breed
 import Page.Breeds as Breeds
 import Page.NotFound as NotFound
-import Route exposing (Route(..))
+import Route exposing (Route)
 import Url
 
 
@@ -52,6 +51,7 @@ type Page
 init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
+        route : Route
         route =
             Route.fromUrl url
     in
@@ -117,6 +117,7 @@ update msg model =
 
         ( UrlChanged url, _ ) ->
             let
+                newRoute : Route
                 newRoute =
                     Route.fromUrl url
             in
@@ -171,6 +172,7 @@ view model =
 currentView : Model -> Html Msg
 currentView model =
     let
+        page : Html Msg
         page =
             case model.page of
                 AllBreeds breedsModel ->

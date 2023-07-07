@@ -1,4 +1,4 @@
-module Helpers.Message exposing (..)
+module Helpers.Message exposing (failureToFetch, loading)
 
 
 loading : String
