@@ -16,6 +16,8 @@ import Helpers.Message as Message
 import Html exposing (Html, a, div, h1, li, p, text, ul)
 import Http
 import Json.Decode as Decode exposing (Decoder, field, keyValuePairs, list)
+import Json.Encode as Encode
+import Ports
 import Route as Route
 
 
@@ -73,9 +75,12 @@ update msg model =
 
                         convertedBreeds =
                             List.map convertFromStringToBreed sortedBreeds
+
+                        encodedBreeds =
+                            allBreedsEncoder convertedBreeds
                     in
                     -- persist in session storage here as well
-                    ( { model | dogBreeds = Success convertedBreeds }, Cmd.none )
+                    ( { model | dogBreeds = Success convertedBreeds }, Ports.setStorage encodedBreeds )
 
                 Err err ->
                     ( { model | dogBreeds = Failure err }, Cmd.none )
@@ -186,3 +191,18 @@ getAllBreeds expectedMsg =
 messageDecoder : Decoder (List ( String, List String ))
 messageDecoder =
     field "message" (keyValuePairs (list Decode.string))
+
+
+allBreedsEncoder : List ( Breed, List SubBreed ) -> Encode.Value
+allBreedsEncoder req =
+    Encode.object
+        [ ( "allBreeds", Encode.list encodePairs req )
+        ]
+
+
+encodePairs : ( Breed, List SubBreed ) -> Encode.Value
+encodePairs ( breed, subBreeds ) =
+    Encode.object
+        [ ( "breed", Encode.string <| breedToString breed )
+        , ( "subBreed", Encode.list Encode.string <| List.map subBreedToString subBreeds )
+        ]
