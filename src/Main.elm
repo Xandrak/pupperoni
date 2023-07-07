@@ -2,7 +2,7 @@ module Main exposing (Model, Msg, Page, main)
 
 import Browser
 import Browser.Navigation as Nav
-import Html exposing (Html, a, div, h1, p, section, text)
+import Json.Encode as Encode
 import Page.Breed as Breed
 import Page.Breeds as Breeds
 import Page.NotFound as NotFound
@@ -14,7 +14,7 @@ import Url
 -- MAIN
 
 
-main : Program () Model Msg
+main : Program Encode.Value Model Msg
 main =
     Browser.application
         { init = init
@@ -34,6 +34,7 @@ type alias Model =
     { key : Nav.Key
     , route : Route
     , page : Page
+    , flags : Encode.Value
     }
 
 
@@ -48,14 +49,14 @@ type Page
 -- add flags/check for session storage here
 
 
-init : flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
+init : Encode.Value -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
     let
         route : Route
         route =
             Route.fromUrl url
     in
-    ( Model key route Home, Cmd.none )
+    ( Model key route Home flags, Cmd.none )
 
 
 loadCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -66,7 +67,7 @@ loadCurrentPage ( model, cmd ) =
                 Route.AllBreeds ->
                     let
                         ( pageModel, pageCmd ) =
-                            Breeds.init
+                            Breeds.init model.flags
                     in
                     ( AllBreeds pageModel, Cmd.map AllBreedsMsg pageCmd )
 
@@ -76,14 +77,14 @@ loadCurrentPage ( model, cmd ) =
                 Route.Breed breed ->
                     let
                         ( pageModel, pageCmd ) =
-                            Breed.init (Breeds.stringToBreed breed) Nothing
+                            Breed.init model.flags (Breeds.stringToBreed breed) Nothing
                     in
                     ( Breed pageModel, Cmd.map BreedMsg pageCmd )
 
                 Route.SubBreed breed subBreed ->
                     let
                         ( pageModel, pageCmd ) =
-                            Breed.init (Breeds.stringToBreed breed) (Just <| Breeds.stringToSubBreed subBreed)
+                            Breed.init model.flags (Breeds.stringToBreed breed) (Just <| Breeds.stringToSubBreed subBreed)
                     in
                     ( Breed pageModel, Cmd.map BreedMsg pageCmd )
 
